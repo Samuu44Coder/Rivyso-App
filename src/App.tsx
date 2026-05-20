@@ -21,6 +21,25 @@ export default function App() {
   const [authForm, setAuthForm] = useState({ email: '', password: '', name: '' });
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    setAuthError(null);
+    setIsAuthenticating(true);
+    try {
+      await loginWithGoogle();
+    } catch (err: any) {
+      console.error("Google Authenticating Error:", err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setAuthError('Unauthorized Domain: Please add your Vercel or custom domain to the "Authorized domains" list under Firebase Console -> Authentication -> Settings -> Authorized Domains.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setAuthError('The sign-in popup was blocked by your browser. Please allow popups or try opening the app in a new tab.');
+      } else {
+        setAuthError(err.message || 'Failed to sign in with Google. Note: Google pop-ups may be blocked inside iframes; please open this preview in a new tab.');
+      }
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
   const [state, setState] = useState<AppState>('idle');
   const [view, setView] = useState<View>('notes');
   const [images, setImages] = useState<string[]>([]);
@@ -949,7 +968,7 @@ export default function App() {
                 </div>
 
                 <button 
-                  onClick={loginWithGoogle}
+                  onClick={handleGoogleLogin}
                   className="w-full py-4 bg-white border border-slate-200 text-slate-900 rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm"
                 >
                   <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
